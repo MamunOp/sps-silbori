@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Base user information and role mapping.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "parent", "student"] },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Application": {
+      "title": "Admission Application",
+      "description": "An admission application submitted by a prospective student/parent.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentName": { "type": "string" },
+        "grade": { "type": "string" },
+        "parentEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "accepted", "rejected"] },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" }
+      },
+      "required": ["studentName", "grade", "parentEmail", "status", "submittedAt"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "A registered student record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "grade": { "type": "string" },
+        "parentId": { "type": "string" },
+        "enrolledAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "grade", "parentId", "enrolledAt"]
+    },
+    "Invoice": {
+      "title": "Fee Invoice",
+      "description": "A fee record for a student.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["unpaid", "paid", "overdue"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "amount", "dueDate", "status", "createdAt"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A payment transaction for an invoice.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "invoiceId": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "paidAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["invoiceId", "amount", "paidAt", "userId"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily attendance record for a student.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"] }
+      },
+      "required": ["studentId", "date", "status"]
+    },
+    "Grade": {
+      "title": "Grade",
+      "description": "Academic performance record.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "subject": { "type": "string" },
+        "score": { "type": "number" },
+        "term": { "type": "string" }
+      },
+      "required": ["studentId", "subject", "score"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and roles."
+    },
+    "applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Admission applications."
+    },
+    "students/{studentId}": {
+      "schema": "Student",
+      "description": "Student records."
+    },
+    "fees/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Fee invoices."
+    },
+    "payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Payment records."
+    },
+    "attendance/{recordId}": {
+      "schema": "Attendance",
+      "description": "Student attendance logs."
+    },
+    "grades/{gradeId}": {
+      "schema": "Grade",
+      "description": "Student academic grades."
+    }
+  }
+}
