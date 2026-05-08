@@ -14,7 +14,10 @@ import {
   GraduationCap,
   CreditCard,
   ClipboardCheck,
-  Clock
+  Clock,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -37,6 +40,7 @@ function MainLayout() {
   const [activeTab, setActiveTab] = useState('admissions');
   const [viewMode, setViewMode] = useState<ViewMode>('landing');
   const [intendedTab, setIntendedTab] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleSignIn = async (targetTab?: string) => {
     try {
@@ -152,56 +156,64 @@ function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans selection:bg-slate-900 selection:text-white">
+    <div className={`min-h-screen bg-slate-50 flex font-sans selection:bg-slate-900 selection:text-white transition-all duration-500`}>
       {/* Sidebar */}
-      <aside className="w-80 border-r border-slate-200 bg-white flex flex-col hidden lg:flex sticky top-0 h-screen">
-        <div className="p-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/10 transition-transform hover:scale-110">
-              <School className="w-6 h-6 text-white" strokeWidth={1.5} />
+      <aside className={`border-r border-slate-200 bg-white flex flex-col fixed inset-y-0 left-0 z-50 transition-all duration-500 lg:sticky lg:h-screen ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full lg:w-0 overflow-hidden border-none'}`}>
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-900/10 transition-transform hover:scale-110">
+              <School className="w-5 h-5 text-white" strokeWidth={1.5} />
             </div>
             <div>
-                <span className="font-display font-bold text-2xl tracking-tight text-slate-900 uppercase">Skyline</span>
-                <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] -mt-1">Public Hub</p>
+                <span className="font-display font-bold text-xl tracking-tight text-slate-900 uppercase">Skyline</span>
+                <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.3em] -mt-1">Public Hub</p>
             </div>
           </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:flex hidden h-8 w-8 text-slate-400 hover:text-slate-900 rounded-lg"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </Button>
         </div>
 
-        <nav className="flex-1 px-8 py-2 space-y-2">
-            <div className="mb-6">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mb-4 ml-2">Main Controls</p>
-                <div className="space-y-1">
+        <nav className="flex-1 px-5 py-2 space-y-1">
+            <div className="mb-4">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.4em] mb-3 ml-2">Controls</p>
+                <div className="space-y-0.5">
                     <NavButton 
                         active={activeTab === 'admissions'} 
                         onClick={() => setActiveTab('admissions')} 
-                        icon={<ClipboardCheck className="w-5 h-5" strokeWidth={2} />} 
+                        icon={<ClipboardCheck className="w-4 h-4" strokeWidth={2} />} 
                         label="Records Index" 
                     />
                     <NavButton 
                         active={activeTab === 'apply'} 
                         onClick={() => setActiveTab('apply')} 
-                        icon={<UserPlus className="w-5 h-5" strokeWidth={2} />} 
+                        icon={<UserPlus className="w-4 h-4" strokeWidth={2} />} 
                         label="New Induction" 
                     />
                 </div>
             </div>
         </nav>
 
-        <div className="p-8">
-            <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/20 blur-2xl rounded-full -mr-10 -mt-10" />
-                <div className="relative z-10 flex flex-col gap-5">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-sm font-bold text-slate-900 shadow-sm">
+        <div className="p-5">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-slate-200/20 blur-xl rounded-full -mr-8 -mt-8" />
+                <div className="relative z-10 flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-900 shadow-sm">
                             {user.displayName?.[0]}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate tracking-tight leading-none mb-1.5">{user.displayName}</p>
-                            <Badge variant="outline" className="border-slate-200 text-slate-400 rounded-full text-[9px] font-bold uppercase tracking-widest px-2 h-4">{profile?.role}</Badge>
+                            <p className="text-xs font-bold text-slate-900 truncate tracking-tight leading-none mb-1">{user.displayName}</p>
+                            <Badge variant="outline" className="border-slate-200 text-slate-400 rounded-full text-[8px] font-bold uppercase tracking-widest px-1.5 h-3.5 leading-none">{profile?.role}</Badge>
                         </div>
                     </div>
-                    <Button variant="ghost" className="w-full justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-12 rounded-xl transition-all font-bold uppercase text-[10px] tracking-widest border border-slate-100 bg-white" onClick={handleSignOut}>
-                        <LogOut className="w-4 h-4 mr-2" />
+                    <Button variant="ghost" className="w-full justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-9 rounded-lg transition-all font-bold uppercase text-[9px] tracking-widest border border-slate-100 bg-white" onClick={handleSignOut}>
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
                         Revoke Access
                     </Button>
                 </div>
@@ -210,16 +222,38 @@ function MainLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-10 lg:hidden">
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
-                    <School className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-display font-bold text-xl tracking-tight uppercase text-slate-900">Skyline</span>
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Sidebar Toggle for Desktop (When closed) */}
+        {!isSidebarOpen && (
+            <div className="hidden lg:block absolute left-6 top-6 z-20">
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="h-10 w-10 rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 bg-white text-slate-400 hover:text-slate-900 transition-all active:scale-95"
+                >
+                    <PanelLeftOpen className="w-5 h-5" />
+                </Button>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl h-12 w-12 text-slate-400">
-                <LogOut className="w-5 h-5" />
+        )}
+
+        <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-10 lg:hidden">
+            <div className="flex items-center gap-3">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="mr-1 h-9 w-9"
+                >
+                    <Menu className="w-5 h-5" />
+                </Button>
+                <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                    <School className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-display font-bold text-lg tracking-tight uppercase text-slate-900">Skyline</span>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-lg h-10 w-10 text-slate-400">
+                <LogOut className="w-4 h-4" />
             </Button>
         </header>
 
@@ -248,20 +282,20 @@ function NavButton({ active, onClick, icon, label }: { active: boolean, onClick:
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-wider transition-all relative group ${
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all relative group ${
         active 
-          ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' 
+          ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/10' 
           : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
       }`}
     >
-      <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:translate-x-1'}`}>
+      <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:translate-x-0.5'}`}>
         {icon}
       </div>
       <span>{label}</span>
       {active && (
           <motion.div 
             layoutId="nav-active"
-            className="absolute right-4 w-1.5 h-1.5 rounded-full bg-white/40"
+            className="absolute right-3 w-1 h-1 rounded-full bg-white/40"
           />
       )}
     </button>

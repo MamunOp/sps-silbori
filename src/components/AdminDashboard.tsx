@@ -88,156 +88,156 @@ export function AdminDashboard({ view = 'applications' }: { view?: string }) {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-8 py-4 px-2">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50/50 text-blue-700 text-[10px] font-bold px-2 py-0">ADMIN PORTAL</Badge>
+    <div className="max-w-[1600px] mx-auto space-y-5 py-2 px-2">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-0.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50/50 text-blue-700 text-[9px] font-bold px-2 py-0">ADMIN PORTAL</Badge>
                   <div className="w-1 h-1 rounded-full bg-slate-300" />
-                  <span className="text-[10px] font-mono font-medium text-slate-400 tracking-wider">VERSION 2.4.0</span>
+                  <span className="text-[9px] font-mono font-medium text-slate-400 tracking-wider">VERSION 2.4.0</span>
                 </div>
-                <h2 className="text-5xl font-display font-bold tracking-tight text-slate-900 leading-[0.9]">Registry Ledger</h2>
-                <p className="text-slate-500 font-medium tracking-tight mt-2 max-w-lg">Advanced student admission management system and official record keeping.</p>
+                <h2 className="text-3xl font-display font-bold tracking-tight text-slate-900 leading-tight">Registry Ledger</h2>
+                <p className="text-slate-500 text-sm font-medium tracking-tight mt-1 max-w-lg">Advanced student admission management system.</p>
             </div>
-            <div className="flex items-center gap-3 no-print">
+            <div className="flex items-center gap-2 no-print">
                 <Button 
                     variant="outline" 
                     onClick={exportToExcel}
-                    className="rounded-2xl h-12 px-6 border-slate-200 font-bold uppercase text-[11px] tracking-widest hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all flex items-center gap-2 bg-white"
+                    className="rounded-xl h-10 px-4 border-slate-200 font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-50 hover:text-emerald-700 transition-all flex items-center gap-2 bg-white"
                 >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
                     Export Sheet
                 </Button>
                 <Button 
                     variant="outline" 
                     onClick={() => window.print()}
-                    className="rounded-2xl h-12 px-6 border-slate-200 font-bold uppercase text-[11px] tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 bg-white"
+                    className="rounded-xl h-10 px-4 border-slate-200 font-bold uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 bg-white"
                 >
-                    <Printer className="w-4 h-4 text-slate-600" />
+                    <Printer className="w-3.5 h-3.5 text-slate-600" />
                     Print PDF
                 </Button>
                 <NewAdmissionDialog />
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 no-print items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 no-print items-center">
             <div className="relative md:col-span-6 lg:col-span-7">
-                <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                 <Input 
-                    placeholder="Filter records by name, ID, or reference number..." 
-                    className="pl-12 h-14 bg-white border-slate-200 rounded-[1.25rem] shadow-sm focus:ring-slate-900 focus:border-slate-900 text-base" 
+                    placeholder="Filter records by name, ID, or reference..." 
+                    className="pl-10 h-10 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-slate-900 text-sm" 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
             <div className="relative md:col-span-3 lg:col-span-3">
-                <Filter className="absolute left-4 top-4 h-4 w-4 text-slate-400 pointer-events-none" />
+                <Filter className="absolute left-3.5 top-3 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                 <select 
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full h-14 pl-12 pr-4 bg-white border border-slate-200 rounded-[1.25rem] shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 text-sm font-semibold text-slate-700"
+                    className="w-full h-10 pl-10 pr-4 bg-white border border-slate-200 rounded-xl shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 text-xs font-semibold text-slate-700"
                 >
-                    <option value="all">Display All Records</option>
-                    <option value="pending">Status: Pending Verification</option>
-                    <option value="reviewed">Status: Under Review</option>
-                    <option value="accepted">Status: Enrollment Accepted</option>
-                    <option value="rejected">Status: Registry Declined</option>
-                </select>
-            </div>
-            <div className="md:col-span-3 lg:col-span-2 h-14 flex items-center justify-between bg-slate-900 rounded-[1.25rem] px-5 text-white">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-display">Active Records</span>
-                <span className="text-xl font-bold font-display">{filteredData.length}</span>
-            </div>
+                <option value="all">Display All Records</option>
+                <option value="pending">Status: Pending</option>
+                <option value="reviewed">Status: Under Review</option>
+                <option value="accepted">Status: Accepted</option>
+                <option value="rejected">Status: Declined</option>
+            </select>
         </div>
+        <div className="md:col-span-3 lg:col-span-2 h-10 flex items-center justify-between bg-slate-900 rounded-xl px-4 text-white">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 font-display">Active Records</span>
+            <span className="text-lg font-bold font-display">{filteredData.length}</span>
+        </div>
+    </div>
 
-        <Card className="border border-slate-100 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] rounded-[2.5rem] overflow-hidden bg-white print-shadow-none print-border-none">
-            <Table>
-                <TableHeader className="bg-slate-50/50">
-                    <TableRow className="border-slate-100 hover:bg-transparent">
-                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16 px-8">Tracking UUID</TableHead>
-                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Enrollment Profile</TableHead>
-                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Grade</TableHead>
-                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Entry Date</TableHead>
-                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Current Phase</TableHead>
-                        <TableHead className="text-right font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16 px-8 no-print">Control</TableHead>
+    <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white print-shadow-none print-border-none">
+        <Table>
+            <TableHeader className="bg-slate-50/50">
+                <TableRow className="border-slate-100 hover:bg-transparent">
+                    <TableHead className="font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10 px-6">Tracking UUID</TableHead>
+                    <TableHead className="font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10">Enrollment Profile</TableHead>
+                    <TableHead className="font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10">Grade</TableHead>
+                    <TableHead className="font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10">Entry Date</TableHead>
+                    <TableHead className="font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10">Current Phase</TableHead>
+                    <TableHead className="text-right font-display uppercase text-[9px] font-bold tracking-[0.2em] text-slate-400 h-10 px-6 no-print">Control</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {loading ? (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-64 text-center">
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-200" />
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-4">Synchronizing...</p>
+                        </TableCell>
                     </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {loading ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="h-96 text-center">
-                                <Loader2 className="w-12 h-12 animate-spin mx-auto text-slate-200" />
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-6">Synchronizing Data Streams...</p>
+                ) : filteredData.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-64 text-center">
+                            <div className="max-w-xs mx-auto space-y-3">
+                                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                                  <Search className="w-5 h-5 text-slate-200" />
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-lg font-bold text-slate-900 tracking-tight">Vault Empty</h4>
+                                  <p className="text-xs text-slate-500 font-medium">No records match your filters.</p>
+                                </div>
+                                <Button variant="outline" className="rounded-xl h-8 px-4 border-slate-200 font-bold uppercase text-[9px] tracking-widest mt-2" onClick={() => {setSearchTerm(''); setStatusFilter('all');}}>Reset</Button>
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    filteredData.map((app) => (
+                        <TableRow key={app.id} className="group hover:bg-slate-50/50 border-slate-50 transition-all h-16">
+                            <TableCell className="px-6">
+                                <code className="bg-slate-50 text-[10px] font-bold text-slate-400 p-1.5 rounded-lg border border-slate-100 group-hover:text-slate-900 transition-colors">
+                                    {app.id.slice(0, 12).toUpperCase()}
+                                </code>
                             </TableCell>
-                        </TableRow>
-                    ) : filteredData.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="h-96 text-center">
-                                <div className="max-w-xs mx-auto space-y-4">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                                      <Search className="w-6 h-6 text-slate-200" />
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden shadow-sm">
+                                        {app.photoUrl ? <img src={app.photoUrl} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-slate-300" />}
                                     </div>
-                                    <div className="space-y-1">
-                                      <h4 className="text-xl font-bold text-slate-900 tracking-tight">Vault Empty</h4>
-                                      <p className="text-sm text-slate-500 font-medium">No records match your current filtering criteria or the database is unpopulated.</p>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-sm text-slate-900 tracking-tight">{app.studentName}</span>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-[9px] text-slate-400 font-bold font-mono">{app.parentMobile}</span>
+                                          <div className="w-1 h-1 rounded-full bg-slate-200" />
+                                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{app.village}</span>
+                                        </div>
                                     </div>
-                                    <Button variant="outline" className="rounded-xl h-10 px-6 border-slate-200 font-bold uppercase text-[10px] tracking-widest mt-4">Reset Parameters</Button>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                  <span className="text-xs font-bold text-slate-700">Class {app.grade}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-slate-500 font-medium">
+                                {app.submittedAt ? format(app.submittedAt.toDate(), 'dd MMM, yy') : '--'}
+                            </TableCell>
+                            <TableCell>
+                                {renderStatusBadge(app.status)}
+                            </TableCell>
+                            <TableCell className="text-right px-6 no-print">
+                                <div className="flex items-center justify-end gap-1">
+                                    <ApplicationView app={app} />
+                                    <div className="h-6 w-[1px] bg-slate-100 mx-1" />
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:bg-emerald-50 rounded-lg" onClick={() => handleStatusUpdate(app.id, 'accepted')}>
+                                        <Check className="h-4 w-4" strokeWidth={2.5} />
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-600 hover:bg-rose-50 rounded-lg" onClick={() => handleStatusUpdate(app.id, 'rejected')}>
+                                        <X className="h-4 w-4" strokeWidth={2.5} />
+                                    </Button>
                                 </div>
                             </TableCell>
                         </TableRow>
-                    ) : (
-                        filteredData.map((app) => (
-                            <TableRow key={app.id} className="group hover:bg-slate-50/50 border-slate-50 transition-all h-24">
-                                <TableCell className="px-8">
-                                    <code className="bg-slate-50 text-[11px] font-bold text-slate-400 p-2 rounded-lg border border-slate-100 group-hover:text-slate-900 transition-colors">
-                                        {app.id.slice(0, 12).toUpperCase()}
-                                    </code>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center shrink-0 border border-slate-100 group-hover:scale-105 transition-transform overflow-hidden shadow-sm">
-                                            {app.photoUrl ? <img src={app.photoUrl} className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-slate-300" />}
-                                        </div>
-                                        <div className="flex flex-col space-y-0.5">
-                                            <span className="font-bold text-base text-slate-900 tracking-tight">{app.studentName}</span>
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-[10px] text-slate-400 font-bold font-mono tracking-tighter">{app.parentMobile}</span>
-                                              <div className="w-1 h-1 rounded-full bg-slate-200" />
-                                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{app.village}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                      <span className="text-sm font-bold text-slate-700">Class {app.grade}</span>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-sm text-slate-500 font-medium">
-                                    {app.submittedAt ? format(app.submittedAt.toDate(), 'dd MMM, yyyy') : '--'}
-                                </TableCell>
-                                <TableCell>
-                                    {renderStatusBadge(app.status)}
-                                </TableCell>
-                                <TableCell className="text-right px-8 no-print">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <ApplicationView app={app} />
-                                        <div className="h-8 w-[1px] bg-slate-100 mx-1" />
-                                        <Button size="icon" variant="ghost" className="h-10 w-10 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors border border-transparent hover:border-emerald-100" onClick={() => handleStatusUpdate(app.id, 'accepted')}>
-                                            <Check className="h-5 w-5" strokeWidth={2.5} />
-                                        </Button>
-                                        <Button size="icon" variant="ghost" className="h-10 w-10 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-xl transition-colors border border-transparent hover:border-rose-100" onClick={() => handleStatusUpdate(app.id, 'rejected')}>
-                                            <X className="h-5 w-5" strokeWidth={2.5} />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
-        </Card>
+                    ))
+                )}
+            </TableBody>
+        </Table>
+    </Card>
     </div>
   );
 
@@ -413,24 +413,24 @@ function NewAdmissionDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="bg-blue-950 h-11 px-6 rounded-xl flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 no-print">
-                    <Plus className="w-4 h-4" />
-                    Registry Entry
+                <div className="bg-slate-900 h-10 px-5 rounded-xl flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 active:scale-95 no-print">
+                    <Plus className="w-3.5 h-3.5" />
+                    New Induction
                 </div>
             </DialogTrigger>
             <DialogContent className="max-w-none w-screen h-screen p-0 border-none shadow-none rounded-none overflow-hidden flex flex-col bg-white">
-                <div className="shrink-0 h-16 bg-blue-950 px-10 flex items-center justify-between no-print">
+                <div className="shrink-0 h-14 bg-slate-900 px-8 flex items-center justify-between no-print">
                     <div>
-                        <h2 className="text-white text-xl font-black tracking-tighter uppercase italic leading-none">Admission Registry</h2>
-                        <p className="text-[9px] text-white/30 font-mono uppercase tracking-widest mt-1">Official Entry Protocol</p>
+                        <h2 className="text-white text-lg font-display font-bold tracking-tight uppercase leading-none">Admission Registry</h2>
+                        <p className="text-[9px] text-white/30 font-mono uppercase tracking-widest mt-1">Official Induction Cycle</p>
                     </div>
                     <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => setOpen(false)}
-                        className="text-white/50 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 p-0"
+                        className="text-white/40 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 p-0"
                     >
-                        <X className="w-5 h-5" strokeWidth={3} />
+                        <X className="w-5 h-5" strokeWidth={2.5} />
                     </Button>
                 </div>
                 <div className="flex-1 overflow-hidden print-p-0 print-m-0">

@@ -145,32 +145,32 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center text-center p-12 space-y-10"
+        className="flex flex-col items-center text-center p-6 space-y-6"
       >
-        <div className="w-24 h-24 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] relative group">
-          <div className="absolute inset-0 bg-emerald-500 rounded-[2rem] opacity-0 group-hover:opacity-20 transition-opacity animate-pulse" />
-          <CheckCircle2 className="w-12 h-12 relative z-10" strokeWidth={2.5} />
+        <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg relative group">
+          <div className="absolute inset-0 bg-emerald-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity animate-pulse" />
+          <CheckCircle2 className="w-10 h-10 relative z-10" strokeWidth={2.5} />
         </div>
-        <div className="space-y-3">
-          <h2 className="text-4xl font-display font-bold tracking-tight text-slate-900 uppercase">Application Filed</h2>
-          <p className="text-slate-500 font-medium text-base max-w-md mx-auto">Your credentials have been successfully logged in our central registry. We will contact you shortly.</p>
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-display font-bold tracking-tight text-slate-900 uppercase">Application Filed</h2>
+          <p className="text-slate-500 font-medium text-xs max-w-sm mx-auto">Your credentials have been successfully logged in our central registry. We will contact you shortly.</p>
         </div>
-        <div className="bg-slate-50 px-10 py-8 rounded-[2.5rem] border border-slate-100 flex flex-col items-center shadow-sm">
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-3">Tracking Reference</span>
-            <p className="text-4xl font-display font-bold tracking-tight text-slate-900">{applicationId.toUpperCase()}</p>
+        <div className="bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100 flex flex-col items-center shadow-sm">
+            <span className="text-[8px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-1">Tracking Reference</span>
+            <p className="text-2xl font-display font-bold tracking-tight text-slate-900">{applicationId.toUpperCase()}</p>
         </div>
-        <div className="flex gap-4 no-print">
+        <div className="flex gap-2 no-print">
           <Button 
             onClick={() => window.print()} 
             variant="outline" 
-            className="rounded-xl h-14 px-10 font-bold uppercase text-[11px] tracking-widest border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all"
+            className="rounded-xl h-10 px-6 font-bold uppercase text-[9px] tracking-widest border-slate-200 text-slate-600 hover:bg-slate-50 flex items-center gap-2 transition-all"
           >
-            <Printer className="w-4 h-4" />
-            Print Confirmation
+            <Printer className="w-3.5 h-3.5" />
+            Print Status
           </Button>
           {!compact && (
-            <Button onClick={() => window.location.reload()} className="rounded-xl h-14 px-10 font-bold uppercase text-[11px] tracking-widest bg-slate-900 text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-all">
-              Return to Portal
+            <Button onClick={() => window.location.reload()} className="rounded-xl h-10 px-6 font-bold uppercase text-[9px] tracking-widest bg-slate-900 text-white shadow-lg shadow-slate-900/10 active:scale-95 transition-all">
+              Portal Return
             </Button>
           )}
         </div>
@@ -179,28 +179,28 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
   }
 
   return (
-    <div className={`flex flex-col h-full bg-white transition-all duration-700 ${compact ? '' : 'w-full max-w-[1400px] mx-auto lg:py-8 lg:px-8'}`}>
+    <div className={`flex flex-col h-full bg-white transition-all duration-700 ${compact ? '' : 'w-full max-w-[1400px] mx-auto lg:py-6 lg:px-6'}`}>
       {/* Stepper Header */}
-      <div className={`shrink-0 border-b border-slate-100 no-print ${compact ? 'px-8 py-6' : 'px-10 py-10'}`}>
-        <div className="flex justify-between items-center overflow-x-auto scrollbar-hide pb-4 max-w-5xl mx-auto">
+      <div className={`shrink-0 border-b border-slate-100 no-print ${compact ? 'px-6 py-4' : 'px-8 py-6'}`}>
+        <div className="flex justify-between items-center overflow-x-auto scrollbar-hide pb-2 max-w-4xl mx-auto">
            {STEPS.map((step, i) => (
-             <div key={step.id} className="flex flex-col items-center gap-4 relative flex-1 min-w-[120px]">
+             <div key={step.id} className="flex flex-col items-center gap-3 relative flex-1 min-w-[100px]">
                 <div 
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500 z-10 text-xs border-2 ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 z-10 text-[10px] border-2 ${
                     i <= currentStep 
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.2)]' 
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/10' 
                         : 'bg-white text-slate-300 border-slate-100'
                   }`}
                 >
-                  {i < currentStep ? <CheckCircle2 className="w-5 h-5" strokeWidth={3} /> : step.icon}
+                  {i < currentStep ? <CheckCircle2 className="w-4 h-4" strokeWidth={3} /> : step.icon}
                 </div>
-                <span className={`text-[10px] font-bold uppercase tracking-[0.25em] transition-colors duration-500 text-center ${
+                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] transition-colors duration-500 text-center ${
                   i <= currentStep ? 'text-slate-900' : 'text-slate-300'
                 }`}>
                   {step.title}
                 </span>
                 {i < STEPS.length - 1 && (
-                  <div className={`absolute top-5.5 left-[50%] w-full h-[2px] -z-0 transition-colors duration-500 ${
+                  <div className={`absolute top-4.5 left-[50%] w-full h-[1px] -z-0 transition-colors duration-500 ${
                     i < currentStep ? 'bg-slate-900' : 'bg-slate-100'
                   }`} />
                 )}
@@ -211,29 +211,29 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
-        <div className={`w-full p-8 lg:p-16 space-y-16 transition-all duration-500 ${compact ? '' : 'max-w-5xl'}`}>
-           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="border-slate-200 text-slate-400 rounded-full text-[10px] font-bold tracking-widest px-3 h-6 uppercase">Step {currentStep + 1} of {STEPS.length}</Badge>
+        <div className={`w-full p-6 lg:p-10 space-y-10 transition-all duration-500 ${compact ? '' : 'max-w-4xl'}`}>
+           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-2">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-slate-200 text-slate-400 rounded-full text-[9px] font-bold tracking-widest px-2 h-5 uppercase">Step {currentStep + 1} of {STEPS.length}</Badge>
                     <div className="w-1 h-1 rounded-full bg-slate-200" />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Skyline Admission Registry</span>
+                    <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Academic Session 2026-27</span>
                 </div>
-                <h3 className="text-5xl md:text-6xl font-display font-bold tracking-tight uppercase text-slate-900 leading-none">
+                <h3 className="text-3xl md:text-4xl font-display font-bold tracking-tight uppercase text-slate-900 leading-none">
                   {STEPS[currentStep].title}
                 </h3>
               </div>
-              <div className="flex items-center gap-4 no-print shrink-0">
+              <div className="flex items-center gap-3 no-print shrink-0">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => window.print()}
-                  className="rounded-xl h-14 w-14 border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
+                  className="rounded-xl h-10 w-10 border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
                 >
-                  <Printer className="w-5 h-5" />
+                  <Printer className="w-4 h-4" />
                 </Button>
-                <div className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10">
-                    Admission Form 2025
+                <div className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-slate-900/10">
+                    Admission Form Registry
                 </div>
               </div>
            </div>
@@ -248,24 +248,49 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
               className="space-y-10"
             >
               {currentStep === 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                  <div className="col-span-full flex items-center gap-8 mb-6 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                    <div className="w-28 h-28 bg-white rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 group hover:border-slate-900 transition-all cursor-pointer overflow-hidden relative shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="col-span-full flex items-center gap-6 mb-2 p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <div 
+                      onClick={() => document.getElementById('photo-upload')?.click()}
+                      className="w-20 h-20 bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 group hover:border-slate-900 transition-all cursor-pointer overflow-hidden relative shadow-sm"
+                    >
                       {formData.photoUrl ? (
                          <img src={formData.photoUrl} className="w-full h-full object-cover" />
                       ) : (
-                        <Camera className="w-7 h-7" strokeWidth={1.5} />
+                        <div className="flex flex-col items-center gap-0.5">
+                          <Camera className="w-5 h-5" strokeWidth={1.5} />
+                          <span className="text-[8px] font-bold uppercase tracking-tight">Upload</span>
+                        </div>
                       )}
+                      <input 
+                        type="file" 
+                        id="photo-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setFormData({ ...formData, photoUrl: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
                     </div>
                     <div className="space-y-3 flex-1">
                        <h4 className="font-bold text-[11px] uppercase tracking-[0.3em] text-slate-900">Official Portrait</h4>
-                       <Input 
-                          placeholder="Public image URL / CDN storage link" 
-                          className="h-12 text-sm rounded-xl border-slate-200 bg-white placeholder:text-slate-300 font-medium"
-                          value={formData.photoUrl}
-                          onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                       />
-                       <p className="text-[10px] text-slate-400 font-medium tracking-wide">High resolution, neutral background preferred.</p>
+                       <div 
+                          className="flex items-center justify-between px-6 py-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-all"
+                          onClick={() => document.getElementById('photo-upload')?.click()}
+                        >
+                          <span className="text-sm font-medium text-slate-400">
+                            {formData.photoUrl ? 'Portrait Selected' : 'Click to select passport photo'}
+                          </span>
+                          <Camera className="w-4 h-4 text-slate-400" />
+                       </div>
+                       <p className="text-[10px] text-slate-400 font-medium tracking-wide italic">JPG or PNG. High resolution, neutral background preferred.</p>
                     </div>
                   </div>
 
@@ -355,52 +380,52 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
                         />
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Secondary Contact</Label>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Secondary Contact</Label>
                     <Input 
                       placeholder="+91 Alternate Line" 
                       value={formData.alternateMobileNumber}
                       onChange={(e) => setFormData({ ...formData, alternateMobileNumber: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm"
+                      className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Electronic Mail Registry</Label>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Electronic Mail Registry</Label>
                     <Input 
                       type="email" 
                       placeholder="student@domain.com" 
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm"
+                      className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs"
                     />
                   </div>
 
-                  <div className="col-span-full mt-6 bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100">
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
-                        <MapPin className="w-6 h-6 text-slate-900" />
+                  <div className="col-span-full mt-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                        <MapPin className="w-5 h-5 text-slate-900" />
                       </div>
                       <div>
-                        <h4 className="text-xl font-display font-bold tracking-tight text-slate-900 uppercase">Geographical Residency</h4>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Official physical address for logistics</p>
+                        <h4 className="text-lg font-display font-bold tracking-tight text-slate-900 uppercase">Geographical Residency</h4>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">Physical address for logistics</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-2">
-                      <div className="space-y-3">
-                        <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Village / Town</Label>
-                        <Input value={formData.village} onChange={(e) => setFormData({ ...formData, village: e.target.value })} className="h-14 rounded-2xl border-slate-100 bg-white px-6 font-bold" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-1">
+                      <div className="space-y-2">
+                         <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Village / Town</Label>
+                         <Input value={formData.village} onChange={(e) => setFormData({ ...formData, village: e.target.value })} className="h-10 rounded-xl border-slate-100 bg-white px-5 font-bold text-xs" />
                       </div>
-                      <div className="space-y-3">
-                        <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Administrative District</Label>
-                        <Input value={formData.district} onChange={(e) => setFormData({ ...formData, district: e.target.value })} className="h-14 rounded-2xl border-slate-100 bg-white px-6 font-bold" />
+                      <div className="space-y-2">
+                         <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Administrative District</Label>
+                         <Input value={formData.district} onChange={(e) => setFormData({ ...formData, district: e.target.value })} className="h-10 rounded-xl border-slate-100 bg-white px-5 font-bold text-xs" />
                       </div>
-                      <div className="space-y-3">
-                        <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">State / Province</Label>
-                        <Input value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="h-14 rounded-2xl border-slate-100 bg-white px-6 font-bold" />
+                      <div className="space-y-2">
+                         <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">State / Province</Label>
+                         <Input value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="h-10 rounded-xl border-slate-100 bg-white px-5 font-bold text-xs" />
                       </div>
-                      <div className="space-y-3">
-                        <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Logistics Pin Code</Label>
-                        <Input value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value })} className="h-14 rounded-2xl border-slate-100 bg-white px-6 font-bold shadow-sm tracking-[0.5em]" />
+                      <div className="space-y-2">
+                         <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Logistics Pin Code</Label>
+                         <Input value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value })} className="h-10 rounded-xl border-slate-100 bg-white px-5 font-bold shadow-sm tracking-[0.5em] text-xs" />
                       </div>
                     </div>
                   </div>
@@ -408,44 +433,44 @@ export function AdmissionForm({ onSuccess, compact = false }: AdmissionFormProps
               )}
 
               {currentStep === 2 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian / Paternal Name</Label>
-                    <Input value={formData.fatherName} onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })} className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian / Paternal Name</Label>
+                    <Input value={formData.fatherName} onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })} className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs" />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian / Maternal Name</Label>
-                    <Input value={formData.motherName} onChange={(e) => setFormData({ ...formData, motherName: e.target.value })} className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm" />
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian / Maternal Name</Label>
+                    <Input value={formData.motherName} onChange={(e) => setFormData({ ...formData, motherName: e.target.value })} className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs" />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Alternative Guardian (Legal)</Label>
-                    <Input value={formData.guardianName} onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })} className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm" />
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Alternative Guardian (Legal)</Label>
+                    <Input value={formData.guardianName} onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })} className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs" />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Direct Parental Line</Label>
-                    <Input value={formData.parentMobile} onChange={(e) => setFormData({ ...formData, parentMobile: e.target.value })} className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm" />
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Direct Parental Line</Label>
+                    <Input value={formData.parentMobile} onChange={(e) => setFormData({ ...formData, parentMobile: e.target.value })} className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs" />
                   </div>
                   
-                  <div className="h-px bg-slate-100 col-span-full my-6" />
+                  <div className="h-px bg-slate-100 col-span-full my-4" />
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Briefcase className="w-4 h-4 text-slate-400" />
-                      <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian Business Profile</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Briefcase className="w-3.5 h-3.5 text-slate-400" />
+                      <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Guardian Business Profile</Label>
                     </div>
-                    <Input value={formData.parentOccupation} onChange={(e) => setFormData({ ...formData, parentOccupation: e.target.value })} className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm" />
+                    <Input value={formData.parentOccupation} onChange={(e) => setFormData({ ...formData, parentOccupation: e.target.value })} className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs" />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Economic bracket Index</Label>
+                  <div className="space-y-2">
+                    <Label className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400 ml-1">Economic bracket Index</Label>
                     <Select onValueChange={(v) => setFormData({ ...formData, annualIncome: v })} value={formData.annualIncome}>
-                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-white px-6 font-bold shadow-sm">
+                      <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white px-5 font-bold shadow-sm text-xs">
                         <SelectValue placeholder="Select Annual bracket" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl shadow-2xl p-2 text-sm">
-                        <SelectItem value="Below 2L" className="rounded-xl h-11">Tier III (Below ₹2 Lakh)</SelectItem>
-                        <SelectItem value="2L - 5L" className="rounded-xl h-11">Tier II (₹2 Lakh - ₹5 Lakh)</SelectItem>
-                        <SelectItem value="5L - 10L" className="rounded-xl h-11">Tier I (₹5 Lakh - ₹10 Lakh)</SelectItem>
-                        <SelectItem value="Above 10L" className="rounded-xl h-11">Elite bracket (Above ₹10 Lakh)</SelectItem>
+                      <SelectContent className="rounded-xl shadow-lg p-1 text-xs">
+                        <SelectItem value="Below 2L" className="rounded-lg h-9">Tier III (Below ₹2 Lakh)</SelectItem>
+                        <SelectItem value="2L - 5L" className="rounded-lg h-9">Tier II (₹2 Lakh - ₹5 Lakh)</SelectItem>
+                        <SelectItem value="5L - 10L" className="rounded-lg h-9">Tier I (₹5 Lakh - ₹10 Lakh)</SelectItem>
+                        <SelectItem value="Above 10L" className="rounded-lg h-9">Elite bracket (Above ₹10 Lakh)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
