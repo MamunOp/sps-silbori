@@ -8,20 +8,16 @@ import {
   updateDoc, 
   doc, 
   addDoc, 
-  serverTimestamp,
-  getDocs,
-  where,
-  deleteDoc
+  serverTimestamp
 } from 'firebase/firestore';
-import { QRCodeCanvas } from 'qrcode.react';
-import { Application, Student, Invoice } from '../types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Application } from '../types';
+import { Card } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { AdmissionForm } from './AdmissionForm';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Label } from './ui/label';
 import { toast } from 'sonner';
 import { 
@@ -30,514 +26,384 @@ import {
     Eye, 
     Plus, 
     Search, 
-    Filter,
-    ArrowUpRight,
     Loader2,
-    TrendingUp,
-    TrendingDown,
-    Activity,
-    CreditCard as CardIcon,
-    User
+    User,
+    Printer,
+    FileSpreadsheet,
+    Filter
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { 
-    LineChart, 
-    Line, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    ResponsiveContainer, 
-    AreaChart, 
-    Area,
-    BarChart,
-    Bar
-} from 'recharts';
+import * as XLSX from 'xlsx';
 
-const dummyAnalytics = [
-    { name: 'Jan', students: 100, fees: 4000 },
-    { name: 'Feb', students: 120, fees: 3000 },
-    { name: 'Mar', students: 150, fees: 2000 },
-    { name: 'Apr', students: 180, fees: 2780 },
-    { name: 'May', students: 250, fees: 1890 },
-    { name: 'Jun', students: 300, fees: 2390 },
-];
-
-export function AdminDashboard({ view }: { view: string }) {
-  const [data, setData] = useState<any[]>([]);
+export function AdminDashboard({ view = 'applications' }: { view?: string }) {
+  const [data, setData] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (view === 'dashboard') {
-        setLoading(false);
-        return;
-    }
     setLoading(true);
-    const colRef = collection(db, view);
-    const q = query(colRef, orderBy(view === 'applications' ? 'submittedAt' : 'createdAt', 'desc'));
+    const colRef = collection(db, 'applications');
+    const q = query(colRef, orderBy('submittedAt', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Application[];
       setData(items);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, view);
+      handleFirestoreError(error, OperationType.LIST, 'applications');
     });
 
     return unsubscribe;
-  }, [view]);
+  }, []);
 
   const filteredData = data.filter(item => {
-    const searchStr = searchTerm.toLowerCase();
-    if (view === 'applications') return item.studentName.toLowerCase().includes(searchStr);
-    if (view === 'students') return item.name.toLowerCase().includes(searchStr);
-    if (view === 'fees') return item.studentId.toLowerCase().includes(searchStr) || item.description.toLowerCase().includes(searchStr);
-    return true;
+    const matchesSearch = item.studentName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         item.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  return (
-    <div className="space-y-6">
-      {view === 'dashboard' ? (
-          <AnalyticsDashboard />
-      ) : (
-          <>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                <h2 className="text-2xl font-bold tracking-tight capitalize">{view}</h2>
-                <p className="text-sm text-neutral-500">Manage all {view} in the system.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
-                        <Input 
-                            placeholder={`Search ${view}...`} 
-                            className="pl-9 bg-white" 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    {view === 'fees' && <CreateInvoiceDialog />}
-                    {view === 'students' && <AddStudentDialog />}
-                    {view === 'applications' && <NewAdmissionDialog />}
-                </div>
-            </div>
+  const exportToExcel = () => {
+    const exportData = filteredData.map(app => ({
+      'Application ID': app.id.toUpperCase(),
+      'Student Name': app.studentName,
+      'Grade': app.grade,
+      'Status': app.status.toUpperCase(),
+      'Submission Date': app.submittedAt ? format(app.submittedAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A',
+      'Father Name': app.fatherName,
+      'Mother Name': app.motherName,
+      'Mobile': app.mobileNumber,
+      'Aadhaar': app.aadhaarNumber,
+      'Email': app.email || 'N/A',
+      'Village': app.village,
+      'District': app.district
+    }));
 
-            <Card className="border-neutral-200 overflow-hidden shadow-sm">
-                <Table>
-                <TableHeader className="bg-neutral-50/50">
-                    <TableRow>
-                    {view === 'applications' && (
-                        <>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Grade</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                        </>
-                    )}
-                    {view === 'students' && (
-                        <>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Grade</TableHead>
-                        <TableHead>Parent UID</TableHead>
-                        <TableHead>Enrolled</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                        </>
-                    )}
-                    {view === 'fees' && (
-                        <>
-                        <TableHead>Student ID</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                        </>
-                    )}
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Admissions");
+    XLSX.writeFile(wb, `Skyline_Admissions_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    toast.success('Excel file exported successfully');
+  };
+
+  return (
+    <div className="max-w-[1600px] mx-auto space-y-8 py-4 px-2">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="rounded-full border-blue-100 bg-blue-50/50 text-blue-700 text-[10px] font-bold px-2 py-0">ADMIN PORTAL</Badge>
+                  <div className="w-1 h-1 rounded-full bg-slate-300" />
+                  <span className="text-[10px] font-mono font-medium text-slate-400 tracking-wider">VERSION 2.4.0</span>
+                </div>
+                <h2 className="text-5xl font-display font-bold tracking-tight text-slate-900 leading-[0.9]">Registry Ledger</h2>
+                <p className="text-slate-500 font-medium tracking-tight mt-2 max-w-lg">Advanced student admission management system and official record keeping.</p>
+            </div>
+            <div className="flex items-center gap-3 no-print">
+                <Button 
+                    variant="outline" 
+                    onClick={exportToExcel}
+                    className="rounded-2xl h-12 px-6 border-slate-200 font-bold uppercase text-[11px] tracking-widest hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all flex items-center gap-2 bg-white"
+                >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    Export Sheet
+                </Button>
+                <Button 
+                    variant="outline" 
+                    onClick={() => window.print()}
+                    className="rounded-2xl h-12 px-6 border-slate-200 font-bold uppercase text-[11px] tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 bg-white"
+                >
+                    <Printer className="w-4 h-4 text-slate-600" />
+                    Print PDF
+                </Button>
+                <NewAdmissionDialog />
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 no-print items-center">
+            <div className="relative md:col-span-6 lg:col-span-7">
+                <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
+                <Input 
+                    placeholder="Filter records by name, ID, or reference number..." 
+                    className="pl-12 h-14 bg-white border-slate-200 rounded-[1.25rem] shadow-sm focus:ring-slate-900 focus:border-slate-900 text-base" 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <div className="relative md:col-span-3 lg:col-span-3">
+                <Filter className="absolute left-4 top-4 h-4 w-4 text-slate-400 pointer-events-none" />
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full h-14 pl-12 pr-4 bg-white border border-slate-200 rounded-[1.25rem] shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 text-sm font-semibold text-slate-700"
+                >
+                    <option value="all">Display All Records</option>
+                    <option value="pending">Status: Pending Verification</option>
+                    <option value="reviewed">Status: Under Review</option>
+                    <option value="accepted">Status: Enrollment Accepted</option>
+                    <option value="rejected">Status: Registry Declined</option>
+                </select>
+            </div>
+            <div className="md:col-span-3 lg:col-span-2 h-14 flex items-center justify-between bg-slate-900 rounded-[1.25rem] px-5 text-white">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-display">Active Records</span>
+                <span className="text-xl font-bold font-display">{filteredData.length}</span>
+            </div>
+        </div>
+
+        <Card className="border border-slate-100 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] rounded-[2.5rem] overflow-hidden bg-white print-shadow-none print-border-none">
+            <Table>
+                <TableHeader className="bg-slate-50/50">
+                    <TableRow className="border-slate-100 hover:bg-transparent">
+                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16 px-8">Tracking UUID</TableHead>
+                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Enrollment Profile</TableHead>
+                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Grade</TableHead>
+                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Entry Date</TableHead>
+                        <TableHead className="font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16">Current Phase</TableHead>
+                        <TableHead className="text-right font-display uppercase text-[10px] font-bold tracking-[0.2em] text-slate-400 h-16 px-8 no-print">Control</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {loading ? (
                         <TableRow>
-                            <TableCell colSpan={5} className="h-48 text-center">
-                                <Loader2 className="w-8 h-8 animate-spin mx-auto text-neutral-300" />
+                            <TableCell colSpan={6} className="h-96 text-center">
+                                <Loader2 className="w-12 h-12 animate-spin mx-auto text-slate-200" />
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-6">Synchronizing Data Streams...</p>
                             </TableCell>
                         </TableRow>
                     ) : filteredData.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={5} className="h-48 text-center text-neutral-400 font-serif italic">
-                                No {view} found matching your search.
+                            <TableCell colSpan={6} className="h-96 text-center">
+                                <div className="max-w-xs mx-auto space-y-4">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                                      <Search className="w-6 h-6 text-slate-200" />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <h4 className="text-xl font-bold text-slate-900 tracking-tight">Vault Empty</h4>
+                                      <p className="text-sm text-slate-500 font-medium">No records match your current filtering criteria or the database is unpopulated.</p>
+                                    </div>
+                                    <Button variant="outline" className="rounded-xl h-10 px-6 border-slate-200 font-bold uppercase text-[10px] tracking-widest mt-4">Reset Parameters</Button>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ) : (
-                        filteredData.map((item) => (
-                            <TableRow key={item.id} className="group hover:bg-neutral-50/50 transition-colors">
-                                {view === 'applications' && <ApplicationRow app={item} />}
-                                {view === 'students' && <StudentRow student={item} />}
-                                {view === 'fees' && <InvoiceRow invoice={item} />}
+                        filteredData.map((app) => (
+                            <TableRow key={app.id} className="group hover:bg-slate-50/50 border-slate-50 transition-all h-24">
+                                <TableCell className="px-8">
+                                    <code className="bg-slate-50 text-[11px] font-bold text-slate-400 p-2 rounded-lg border border-slate-100 group-hover:text-slate-900 transition-colors">
+                                        {app.id.slice(0, 12).toUpperCase()}
+                                    </code>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center shrink-0 border border-slate-100 group-hover:scale-105 transition-transform overflow-hidden shadow-sm">
+                                            {app.photoUrl ? <img src={app.photoUrl} className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-slate-300" />}
+                                        </div>
+                                        <div className="flex flex-col space-y-0.5">
+                                            <span className="font-bold text-base text-slate-900 tracking-tight">{app.studentName}</span>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-[10px] text-slate-400 font-bold font-mono tracking-tighter">{app.parentMobile}</span>
+                                              <div className="w-1 h-1 rounded-full bg-slate-200" />
+                                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{app.village}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                      <span className="text-sm font-bold text-slate-700">Class {app.grade}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-sm text-slate-500 font-medium">
+                                    {app.submittedAt ? format(app.submittedAt.toDate(), 'dd MMM, yyyy') : '--'}
+                                </TableCell>
+                                <TableCell>
+                                    {renderStatusBadge(app.status)}
+                                </TableCell>
+                                <TableCell className="text-right px-8 no-print">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <ApplicationView app={app} />
+                                        <div className="h-8 w-[1px] bg-slate-100 mx-1" />
+                                        <Button size="icon" variant="ghost" className="h-10 w-10 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors border border-transparent hover:border-emerald-100" onClick={() => handleStatusUpdate(app.id, 'accepted')}>
+                                            <Check className="h-5 w-5" strokeWidth={2.5} />
+                                        </Button>
+                                        <Button size="icon" variant="ghost" className="h-10 w-10 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-xl transition-colors border border-transparent hover:border-rose-100" onClick={() => handleStatusUpdate(app.id, 'rejected')}>
+                                            <X className="h-5 w-5" strokeWidth={2.5} />
+                                        </Button>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ))
                     )}
                 </TableBody>
-                </Table>
-            </Card>
-          </>
-      )}
+            </Table>
+        </Card>
     </div>
   );
+
+  async function handleStatusUpdate(id: string, status: string) {
+    try {
+        await updateDoc(doc(db, 'applications', id), { status });
+        toast.promise(Promise.resolve(), {
+            loading: 'Updating status...',
+            success: `Registry updated to ${status.toUpperCase()}`,
+            error: 'Failed to update ledger'
+        });
+    } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, 'applications');
+    }
+  }
 }
 
-function AnalyticsDashboard() {
+function renderStatusBadge(status: string) {
+    const configs = {
+        pending: 'bg-amber-50 text-amber-700 border-amber-100',
+        reviewed: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+        accepted: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        rejected: 'bg-rose-50 text-rose-700 border-rose-100'
+    };
+
     return (
-        <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <MiniStats icon={<Activity className="w-4 h-4" />} label="Retention Rate" value="98%" trend="+2% vs LY" />
-                <MiniStats icon={<CardIcon className="w-4 h-4" />} label="Avg. Fee Payment" value="$2,400" trend="Stable" />
-                <MiniStats icon={<TrendingUp className="w-4 h-4" />} label="Waitlist" value="45" trend="+15 this week" />
-                <MiniStats icon={<TrendingDown className="w-4 h-4" />} label="Outstanding" value="$12.1k" trend="Requires attention" color="text-red-600" />
-            </div>
+        <Badge className={`${configs[status as keyof typeof configs]} font-bold text-[10px] uppercase tracking-wider px-3 py-1 rounded-[0.5rem] border shadow-none`}>
+            {status}
+        </Badge>
+    );
+}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="border-neutral-200">
-                    <CardHeader>
-                        <CardTitle className="text-sm font-mono uppercase tracking-widest text-neutral-400">Enrollment Growth</CardTitle>
-                        <CardDescription>Monthly new student registrations.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={dummyAnalytics}>
-                                <defs>
-                                    <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#000" stopOpacity={0.1}/>
-                                    <stop offset="95%" stopColor="#000" stopOpacity={0}/>
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="name" fontSize={11} stroke="#888" axisLine={false} tickLine={false} />
-                                <YAxis fontSize={11} stroke="#888" axisLine={false} tickLine={false} />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} 
-                                />
-                                <Area type="monotone" dataKey="students" stroke="#000" strokeWidth={2} fillOpacity={1} fill="url(#colorStudents)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
+function ApplicationView({ app }: { app: Application }) {
+    const [open, setOpen] = useState(false);
+    
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-10 w-10 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
+                    <Eye className="h-5 w-5" strokeWidth={2} />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl p-0 border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] overflow-hidden rounded-[2.5rem] bg-white">
+                <div className="h-40 bg-slate-900 px-12 flex items-center justify-between no-print relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_30%,#3b82f6_0%,transparent_50%),radial-gradient(circle_at_80%_70%,#6366f1_0%,transparent_50%)]" />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge variant="outline" className="border-white/20 text-white/60 rounded-full text-[10px] font-bold tracking-widest px-2">DOSSIER VIEW</Badge>
+                          <div className="w-1 h-1 rounded-full bg-white/20" />
+                          <span className="text-[10px] font-mono font-medium text-white/40 tracking-wider">SECURE ACCESS</span>
+                        </div>
+                        <h2 className="text-white text-4xl font-display font-bold tracking-tight leading-none uppercase">Profile Insight</h2>
+                    </div>
+                    <div className="flex gap-3 relative z-10">
+                        <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl h-12 px-6 border border-white/10 text-[11px] font-bold uppercase tracking-widest transition-all" onClick={() => window.print()}>
+                            <Printer className="w-4 h-4 mr-2" />
+                            Print Sheet
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="text-white/50 hover:text-white hover:bg-white/10 rounded-xl w-12 h-12 bg-white/5">
+                            <X className="w-6 h-6" />
+                        </Button>
+                    </div>
+                </div>
+                
+                <div className="p-12 space-y-12 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                    <div className="flex gap-12 items-start">
+                        <div className="w-56 h-56 bg-slate-50 rounded-[2rem] overflow-hidden border-[8px] border-white shadow-2xl relative group shrink-0 ring-1 ring-slate-100">
+                            {app.photoUrl ? (
+                                <img src={app.photoUrl} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-200 bg-slate-50">
+                                    <User className="w-20 h-20" strokeWidth={1} />
+                                </div>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 py-2 bg-slate-900/90 text-white text-[9px] font-bold text-center uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                Identity Verified
+                            </div>
+                        </div>
+                        
+                        <div className="flex-1 space-y-8">
+                            <div className="space-y-4">
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-2 block">Candidate Identity</span>
+                                    <h3 className="text-6xl font-display font-bold tracking-tighter text-slate-900 leading-[0.9]">{app.studentName}</h3>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Badge className="bg-slate-900 hover:bg-slate-800 text-white border-none rounded-xl px-5 h-8 text-[11px] font-bold uppercase tracking-widest transition-colors">Class {app.grade}</Badge>
+                                    <div className="h-4 w-[1px] bg-slate-200" />
+                                    <Badge variant="outline" className="border-slate-200 text-slate-500 rounded-xl px-5 h-8 text-[11px] font-bold uppercase tracking-widest bg-white shadow-sm font-mono">{app.id.toUpperCase()}</Badge>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-x-12 gap-y-8 pt-4">
+                                <DetailItem label="Official Date of Birth" value={app.dateOfBirth} />
+                                <DetailItem label="National ID / Aadhaar" value={app.aadhaarNumber} />
+                                <DetailItem label="Primary Guardian / Father" value={app.fatherName} />
+                                <DetailItem label="Secondary Guardian / Mother" value={app.motherName} />
+                            </div>
+                        </div>
+                    </div>
 
-                <Card className="border-neutral-200">
-                    <CardHeader>
-                        <CardTitle className="text-sm font-mono uppercase tracking-widest text-neutral-400">Financial Performance</CardTitle>
-                        <CardDescription>Fee collection efficiency against targets.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={dummyAnalytics}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="name" fontSize={11} stroke="#888" axisLine={false} tickLine={false} />
-                                <YAxis fontSize={11} stroke="#888" axisLine={false} tickLine={false} />
-                                <Tooltip 
-                                    cursor={{ fill: '#f8f8f8' }}
-                                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px' }} 
-                                />
-                                <Bar dataKey="fees" fill="#171717" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-            </div>
+                    <div className="grid grid-cols-3 gap-8">
+                        <InfoCard label="Contact Channel" value={app.mobileNumber} secondary={app.email || 'No electronic mail registered'} />
+                        <InfoCard label="Physical Residency" value={`${app.village}, ${app.district}`} secondary={`${app.state} Region — ${app.pincode}`} />
+                        <InfoCard label="Emergency Protocol" value={app.parentMobile} secondary="Priority Communications Authorized" />
+                    </div>
+
+                    <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 space-y-8">
+                         <div className="flex items-center justify-between">
+                            <h4 className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Governance & Compliance</h4>
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Manual Audit</span>
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-12">
+                            <ul className="space-y-4">
+                                <ComplianceRow label="Digital Identity Certificate verified" checked={true} />
+                                <ComplianceRow label="Residence Affirmation submitted" checked={true} />
+                                <ComplianceRow label="Previous Academic Credentials" checked={true} />
+                                <ComplianceRow label="Medical Clearance Documentation" checked={false} />
+                            </ul>
+                            <div className="bg-white p-8 rounded-[1.5rem] border border-slate-200/50 shadow-xl shadow-slate-200/20 flex flex-col justify-between space-y-6">
+                                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                    This application is designated to the <span className="font-bold text-slate-900 uppercase">{app.status}</span> registry stack. Cross-reference all biometric data during the physical induction phase.
+                                </p>
+                                <div className="flex gap-4">
+                                    <Button className="flex-1 bg-slate-900 hover:bg-slate-800 rounded-xl h-14 text-[12px] font-bold uppercase tracking-widest shadow-xl shadow-slate-900/20 transition-all active:scale-95">Induct Student</Button>
+                                    <Button variant="outline" className="flex-1 rounded-xl h-14 text-[12px] font-bold uppercase tracking-widest border-slate-200 text-slate-500 hover:bg-slate-50">Revoke access</Button>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function DetailItem({ label, value }: { label: string, value: string }) {
+    return (
+        <div className="space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 underline decoration-slate-200 underline-offset-4">{label}</span>
+            <p className="font-bold text-lg text-slate-900 tracking-tight">{value}</p>
         </div>
     );
 }
 
-function MiniStats({ icon, label, value, trend, color }: { icon: any, label: string, value: string, trend: string, color?: string }) {
+function InfoCard({ label, value, secondary }: { label: string, value: string, secondary: string }) {
     return (
-        <Card className="border-neutral-200 p-4">
-            <div className="flex items-center justify-between mb-2">
-                <div className="p-2 bg-neutral-100 rounded-lg">{icon}</div>
-                <span className={`text-[10px] font-mono ${color || 'text-neutral-400'}`}>{trend}</span>
+        <div className="p-8 bg-white border border-slate-100 rounded-[1.5rem] shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 group">
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 block mb-5 group-hover:text-blue-600 transition-colors">{label}</span>
+            <p className="font-bold text-xl text-slate-900 mb-2 tracking-tight leading-tight">{value}</p>
+            <p className="text-[11px] font-medium text-slate-400 truncate tracking-tight">{secondary}</p>
+        </div>
+    );
+}
+
+function ComplianceRow({ label, checked }: { label: string, checked: boolean }) {
+    return (
+        <li className="flex items-center gap-3 text-sm font-medium text-blue-950">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${checked ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-400'}`}>
+                {checked ? <Check className="w-3 h-3" strokeWidth={4} /> : <X className="w-3 h-3" />}
             </div>
-            <p className="text-[10px] uppercase font-mono tracking-tight text-neutral-400">{label}</p>
-            <h4 className="text-xl font-bold">{value}</h4>
-        </Card>
-    );
-}
-
-function ApplicationRow({ app }: { app: Application }) {
-    const [viewOpen, setViewOpen] = useState(false);
-    
-    const handleStatusChange = async (status: string) => {
-        try {
-            await updateDoc(doc(db, 'applications', app.id), { status });
-            toast.success(`Application updated to ${status}`);
-            
-            if (status === 'accepted') {
-                await addDoc(collection(db, 'students'), {
-                    name: app.studentName,
-                    grade: app.grade,
-                    parentId: app.parentEmail,
-                    enrolledAt: serverTimestamp(),
-                    createdAt: serverTimestamp()
-                });
-                toast.success('Student record created automatically');
-            }
-        } catch (error) {
-            handleFirestoreError(error, OperationType.UPDATE, 'applications');
-        }
-    }
-
-    const statusColors = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        reviewed: 'bg-blue-100 text-blue-800',
-        accepted: 'bg-green-100 text-green-800',
-        rejected: 'bg-red-100 text-red-800'
-    };
-
-    return (
-        <>
-            <TableCell className="font-medium">
-                <div className="flex flex-col">
-                    <span>{app.studentName}</span>
-                    <span className="text-[10px] text-neutral-400 font-mono truncate max-w-[150px]">{app.id.toUpperCase()}</span>
-                </div>
-            </TableCell>
-            <TableCell><Badge variant="outline" className="font-mono">{app.grade}</Badge></TableCell>
-            <TableCell className="text-xs text-neutral-500 font-mono">
-                {app.submittedAt ? format(app.submittedAt.toDate(), 'dd MMM yyyy') : '--'}
-            </TableCell>
-            <TableCell>
-                <Badge className={statusColors[app.status]}>{app.status}</Badge>
-            </TableCell>
-            <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                    <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-                        <DialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-neutral-400 hover:text-neutral-900" onClick={() => setViewOpen(true)}>
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-3xl p-0 border-none shadow-2xl overflow-hidden rounded-[2rem]">
-                            <div className="h-24 bg-neutral-900 px-8 flex items-center">
-                                <h2 className="text-white text-2xl font-black tracking-tighter uppercase italic">Application Artifact</h2>
-                            </div>
-                            <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto">
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                        <div className="flex gap-4">
-                                            <div className="w-20 h-20 bg-neutral-100 rounded-xl overflow-hidden border border-neutral-100 shrink-0">
-                                                {app.photoUrl ? <img src={app.photoUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-neutral-300"><User className="w-8 h-8" /></div>}
-                                            </div>
-                                            <div>
-                                                <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Student Name</Label>
-                                                <p className="font-bold text-xl">{app.studentName}</p>
-                                                <Badge variant="secondary" className="mt-1 font-mono">{app.id.slice(0, 8).toUpperCase()}</Badge>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Class</Label>
-                                                <p className="font-medium">{app.grade}</p>
-                                            </div>
-                                            <div>
-                                                <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Age / Gender</Label>
-                                                <p className="font-medium capitalize">{app.age} yrs / {app.gender}</p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Aadhaar / DOB</Label>
-                                            <p className="font-medium">{app.aadhaarNumber} • {app.dateOfBirth}</p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Parents Info</Label>
-                                            <p className="font-bold text-lg">{app.fatherName} (F) / {app.motherName} (M)</p>
-                                            <p className="text-sm text-neutral-500">Contact: {app.parentMobile}</p>
-                                            <p className="text-sm text-neutral-500">Income: {app.annualIncome || 'N/A'}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Address</Label>
-                                            <p className="text-sm text-neutral-600 italic">
-                                                {app.village}, {app.district}, {app.state} - {app.pincode}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 italic text-sm">
-                                    <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 block mb-1">Student Contact</Label>
-                                    Mobile: {app.mobileNumber} {app.email && `| Email: ${app.email}`}
-                                </div>
-
-                                <div className="flex gap-2 pt-4">
-                                    <Button onClick={() => handleStatusChange('accepted')} className="flex-1 bg-green-600 hover:bg-green-700 h-12 rounded-xl flex items-center gap-2">
-                                        <Check className="w-4 h-4" /> Approve Admission
-                                    </Button>
-                                    <Button onClick={() => handleStatusChange('rejected')} variant="destructive" className="flex-1 h-12 rounded-xl flex items-center gap-2">
-                                        <X className="w-4 h-4" /> Reject Application
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={() => handleStatusChange('accepted')}>
-                        <Check className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => handleStatusChange('rejected')}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-            </TableCell>
-        </>
-    );
-}
-
-function StudentRow({ student }: { student: Student }) {
-    const [open, setOpen] = useState(false);
-
-    const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this student record?')) return;
-        try {
-            await deleteDoc(doc(db, 'students', student.id));
-            toast.success('Student record deleted');
-        } catch (error) {
-            handleFirestoreError(error, OperationType.DELETE, 'students');
-        }
-    }
-
-    return (
-        <>
-            <TableCell className="font-medium">{student.name}</TableCell>
-            <TableCell><Badge variant="outline" className="font-mono">{student.grade}</Badge></TableCell>
-            <TableCell className="text-xs text-neutral-500 font-mono truncate max-w-[120px]">{student.parentId}</TableCell>
-            <TableCell className="text-xs text-neutral-500 font-mono">
-                 {student.enrolledAt ? format(student.enrolledAt.toDate(), 'dd MMM yyyy') : '--'}
-            </TableCell>
-            <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger asChild>
-                            <div className="h-8 w-8 text-neutral-400 hover:text-neutral-900 transition-colors cursor-pointer flex items-center justify-center rounded-md hover:bg-neutral-100">
-                                <Eye className="h-4 w-4" />
-                            </div>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md border-none shadow-2xl overflow-hidden p-0">
-                             <div className="h-32 bg-neutral-900 flex items-end p-6">
-                                <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-xl flex items-center justify-center text-3xl mb-[-40px]">
-                                    🎓
-                                </div>
-                             </div>
-                             <div className="pt-12 p-6 space-y-6">
-                                <div>
-                                    <h3 className="text-2xl font-black tracking-tight">{student.name}</h3>
-                                    <p className="text-sm text-neutral-500 font-serif italic">{student.grade} Student</p>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Parent Email</p>
-                                        <p className="text-sm font-medium">{student.parentId}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Enrolled Date</p>
-                                        <p className="text-sm font-medium">{student.enrolledAt ? format(student.enrolledAt.toDate(), 'dd MMM yyyy') : '--'}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Student ID</p>
-                                        <p className="text-sm font-mono">{student.id.slice(0, 12)}</p>
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 flex gap-2">
-                                    <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => setOpen(false)}>Close</Button>
-                                    <Button variant="destructive" className="flex-1 rounded-xl h-11" onClick={handleDelete}>Delete Record</Button>
-                                </div>
-                             </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            </TableCell>
-        </>
-    );
-}
-
-function InvoiceRow({ invoice }: { invoice: Invoice }) {
-    const [open, setOpen] = useState(false);
-    const statusColors = {
-        unpaid: 'bg-yellow-100 text-yellow-800',
-        paid: 'bg-green-100 text-green-800',
-        overdue: 'bg-red-100 text-red-800'
-    };
-
-    const qrValue = `SKYLINE-INV-${invoice.id}-${invoice.amount}`;
-
-    return (
-        <>
-            <TableCell className="font-medium text-xs font-mono">{invoice.studentId.slice(0,8)}</TableCell>
-            <TableCell className="text-sm">{invoice.description}</TableCell>
-            <TableCell className="font-bold">${invoice.amount.toLocaleString()}</TableCell>
-            <TableCell className="text-xs text-neutral-500 font-mono">
-                {invoice.dueDate ? format(new Date(invoice.dueDate), 'dd MMM yyyy') : '--'}
-            </TableCell>
-            <TableCell>
-                <Badge className={statusColors[invoice.status]}>{invoice.status}</Badge>
-            </TableCell>
-            <TableCell className="text-right">
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <div className="h-8 w-8 text-neutral-400 hover:text-neutral-900 cursor-pointer flex items-center justify-center rounded-md hover:bg-neutral-100">
-                            <Eye className="h-4 w-4" />
-                        </div>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden">
-                        <div className="p-8 space-y-8">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h4 className="text-[10px] font-mono uppercase tracking-[0.3em] text-neutral-400 mb-2">School Invoice</h4>
-                                    <h3 className="text-2xl font-black tracking-tighter">Skyline Public School</h3>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs font-mono text-neutral-400">#{invoice.id.slice(0, 8).toUpperCase()}</p>
-                                    <p className="text-xs font-medium">{format(new Date(), 'dd MMM yyyy')}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-6 p-6 bg-neutral-50 rounded-2xl border border-neutral-100 italic">
-                                <div className="space-y-1 flex-1">
-                                    <p className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Statement for</p>
-                                    <p className="font-bold">Student ID: {invoice.studentId.toUpperCase()}</p>
-                                    <p className="text-sm text-neutral-600">{invoice.description}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Amount Due</p>
-                                    <p className="text-3xl font-black tracking-tighter">${invoice.amount.toLocaleString()}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-                                <div className="p-4 bg-white border-2 border-neutral-100 rounded-3xl shadow-sm">
-                                    <QRCodeCanvas 
-                                        value={qrValue} 
-                                        size={160}
-                                        level="H"
-                                        includeMargin={false}
-                                    />
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Scan to Pay via Portal</p>
-                                    <p className="text-xs text-neutral-500 mt-1">Unique Payment Reference: {qrValue}</p>
-                                </div>
-                            </div>
-
-                            <div className="pt-6 border-t border-neutral-100 flex gap-2">
-                                <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => setOpen(false)}>Close</Button>
-                                <Button className="flex-1 rounded-xl h-11 bg-neutral-900">Print Invoice</Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </TableCell>
-        </>
+            {label}
+        </li>
     );
 }
 
@@ -547,210 +413,29 @@ function NewAdmissionDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="bg-blue-950 h-10 px-4 rounded-lg flex items-center gap-2 text-white text-sm font-medium cursor-pointer hover:bg-blue-900 transition-colors shadow-lg shadow-blue-900/20">
+                <div className="bg-blue-950 h-11 px-6 rounded-xl flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 no-print">
                     <Plus className="w-4 h-4" />
-                    New Admission
+                    Registry Entry
                 </div>
             </DialogTrigger>
-            <DialogContent className="max-w-6xl h-[95vh] p-0 border-none shadow-2xl rounded-[3rem] overflow-hidden flex flex-col bg-white">
-                <div className="shrink-0 h-16 bg-blue-950 px-10 flex items-center justify-between">
+            <DialogContent className="max-w-none w-screen h-screen p-0 border-none shadow-none rounded-none overflow-hidden flex flex-col bg-white">
+                <div className="shrink-0 h-16 bg-blue-950 px-10 flex items-center justify-between no-print">
                     <div>
                         <h2 className="text-white text-xl font-black tracking-tighter uppercase italic leading-none">Admission Registry</h2>
-                        <p className="text-[9px] text-white/30 font-mono uppercase tracking-widest mt-1">Internal School Protocol</p>
+                        <p className="text-[9px] text-white/30 font-mono uppercase tracking-widest mt-1">Official Entry Protocol</p>
                     </div>
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setOpen(false)}
+                        className="text-white/50 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 p-0"
+                    >
+                        <X className="w-5 h-5" strokeWidth={3} />
+                    </Button>
                 </div>
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden print-p-0 print-m-0">
                     <AdmissionForm onSuccess={() => setOpen(false)} />
                 </div>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function CreateInvoiceDialog() {
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [students, setStudents] = useState<any[]>([]);
-    const [formData, setFormData] = useState({
-        studentId: '',
-        amount: '',
-        description: '',
-        dueDate: ''
-    });
-
-    useEffect(() => {
-        if (open) {
-            getDocs(collection(db, 'students')).then(snap => {
-                setStudents(snap.docs.map(d => ({ id: d.id, name: d.data().name })));
-            });
-        }
-    }, [open]);
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await addDoc(collection(db, 'fees'), {
-                ...formData,
-                amount: parseFloat(formData.amount),
-                status: 'unpaid',
-                createdAt: serverTimestamp()
-            });
-            toast.success('Invoice created successfully');
-            setOpen(false);
-        } catch (error) {
-            handleFirestoreError(error, OperationType.CREATE, 'fees');
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <div className="bg-neutral-900 h-10 px-4 rounded-lg flex items-center gap-2 text-white text-sm font-medium cursor-pointer hover:bg-neutral-800 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    Create Invoice
-                </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] border-none shadow-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold tracking-tight">Generate Invoice</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Select Student</Label>
-                        <select 
-                            className="w-full h-11 px-3 bg-neutral-50 rounded-lg border border-neutral-100 focus:outline-neutral-900 transition-all"
-                            value={formData.studentId}
-                            onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-                            required
-                        >
-                            <option value="">Select a student...</option>
-                            {students.map(s => (
-                                <option key={s.id} value={s.id}>{s.name} ({s.id.slice(0,5)})</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Amount ($)</Label>
-                            <Input 
-                                type="number" 
-                                placeholder="0.00" 
-                                required 
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                className="bg-neutral-50 border-neutral-100 h-11"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Due Date</Label>
-                            <Input 
-                                type="date" 
-                                required 
-                                value={formData.dueDate}
-                                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                                className="bg-neutral-50 border-neutral-100 h-11"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Description</Label>
-                        <Input 
-                            placeholder="e.g. Tuition Fee - Q3" 
-                            required 
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="bg-neutral-50 border-neutral-100 h-11"
-                        />
-                    </div>
-                    <Button disabled={loading} type="submit" className="w-full h-12 bg-neutral-900 mt-2">
-                        {loading ? 'Creating...' : 'Create Invoice'}
-                    </Button>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function AddStudentDialog() {
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        grade: '',
-        parentId: ''
-    });
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await addDoc(collection(db, 'students'), {
-                ...formData,
-                enrolledAt: serverTimestamp(),
-                createdAt: serverTimestamp()
-            });
-            toast.success('Student added successfully');
-            setOpen(false);
-        } catch (error) {
-            handleFirestoreError(error, OperationType.CREATE, 'students');
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <div className="border border-neutral-200 h-10 px-4 rounded-lg flex items-center gap-2 text-sm font-medium cursor-pointer hover:bg-neutral-50 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    Add Student
-                </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] border-none shadow-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold tracking-tight">Manual Enrollment</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Full Name</Label>
-                        <Input 
-                            placeholder="Student Name" 
-                            required 
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="bg-neutral-50 border-neutral-100 h-11"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Grade</Label>
-                            <Input 
-                                placeholder="e.g. Grade 10" 
-                                required 
-                                value={formData.grade}
-                                onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                                className="bg-neutral-50 border-neutral-100 h-11"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Parent Email (Ref)</Label>
-                            <Input 
-                                type="email"
-                                placeholder="parent@example.com" 
-                                required 
-                                value={formData.parentId}
-                                onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
-                                className="bg-neutral-50 border-neutral-100 h-11"
-                            />
-                        </div>
-                    </div>
-                    <Button disabled={loading} type="submit" className="w-full h-12 bg-neutral-900 mt-2">
-                        {loading ? 'Processing...' : 'Enroll Student'}
-                    </Button>
-                </form>
             </DialogContent>
         </Dialog>
     );

@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import { Button } from './components/ui/button';
+import { Badge } from './components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { AdmissionForm } from './components/AdmissionForm';
@@ -33,7 +34,7 @@ type ViewMode = 'landing' | 'auth';
 
 function MainLayout() {
   const { user, profile, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('admissions');
   const [viewMode, setViewMode] = useState<ViewMode>('landing');
   const [intendedTab, setIntendedTab] = useState<string | null>(null);
 
@@ -89,153 +90,148 @@ function MainLayout() {
     }
 
     return (
-      <div className="min-h-screen bg-neutral-100 flex flex-col items-center justify-center p-4">
-        <Button 
-            variant="ghost" 
-            className="mb-8 text-neutral-500 hover:text-neutral-900"
-            onClick={() => setViewMode('landing')}
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Decorative backgrounds */}
+        <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
+        </div>
+
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative z-10 w-full max-w-md"
         >
-            <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
-            Back to Website
-        </Button>
-        <Card className="w-full max-w-md border-none shadow-2xl bg-white/80 backdrop-blur-xl">
-          <CardHeader className="text-center space-y-1">
-            <div className="mx-auto w-16 h-16 bg-neutral-900 rounded-2xl flex items-center justify-center mb-4 transform -rotate-3">
-              <School className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-3xl font-bold tracking-tight">
-                {intendedTab === 'apply' ? 'Apply to Skyline' : 'Portal Login'}
-            </CardTitle>
-            <CardDescription className="text-neutral-500 italic font-serif">
-              Skyline Public School Management System
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4">
-            <p className="text-center text-sm text-neutral-600">
-              {intendedTab === 'apply' 
-                ? 'Sign in to start your school admission application.' 
-                : 'Please sign in with your school-registered Google account to access your personalized dashboard.'}
-            </p>
             <Button 
-              onClick={() => handleSignIn(intendedTab || 'dashboard')} 
-              className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl transition-all active:scale-95"
+                variant="ghost" 
+                className="mb-10 text-slate-400 hover:text-slate-900 transition-all font-bold uppercase text-[10px] tracking-[0.3em]"
+                onClick={() => setViewMode('landing')}
             >
-              Sign in with Google
+                <ChevronRight className="w-4 h-4 mr-3 rotate-180" />
+                Back to portal
             </Button>
-          </CardContent>
-          <CardFooter className="flex justify-center border-t border-neutral-100 py-4">
-            <p className="text-xs text-neutral-400 font-mono uppercase tracking-widest leading-none">
-              Admission Hub • Student Portal • Finance
-            </p>
-          </CardFooter>
-        </Card>
+            
+            <Card className="w-full border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] bg-white rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="text-center space-y-4 pt-12 pb-8">
+                <div className="mx-auto w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center mb-2 shadow-2xl shadow-slate-900/20">
+                  <School className="w-10 h-10 text-white" strokeWidth={1.5} />
+                </div>
+                <div className="space-y-1">
+                    <CardTitle className="text-4xl font-display font-bold tracking-tight text-slate-900 uppercase">
+                        {intendedTab === 'apply' ? 'Enroll Now' : 'Authority Registry'}
+                    </CardTitle>
+                    <div className="flex items-center justify-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-slate-200" />
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Skyline Public Records</span>
+                    </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-8 px-10 pb-12">
+                <p className="text-center text-sm text-slate-500 font-medium leading-relaxed">
+                  {intendedTab === 'apply' 
+                    ? 'Begin your induction process by authorizing your digital identity.' 
+                    : 'Authorized personnel only. Please verify your credentials to access the central management hub.'}
+                </p>
+                <Button 
+                  onClick={() => handleSignIn(intendedTab || 'dashboard')} 
+                  className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition-all active:scale-95 shadow-xl shadow-slate-900/20 font-bold uppercase text-[12px] tracking-[0.2em] flex items-center gap-3"
+                >
+                  <img src="https://www.google.com/favicon.ico" className="w-4 h-4 invert brightness-0" alt="" />
+                  Verify with Google
+                </Button>
+              </CardContent>
+              <CardFooter className="flex justify-center bg-slate-50 border-t border-slate-100 py-6">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.4em] leading-none">
+                  ISO-27001 SECURED INDUCTION
+                </p>
+              </CardFooter>
+            </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
+    <div className="min-h-screen bg-slate-50 flex font-sans selection:bg-slate-900 selection:text-white">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-neutral-200 bg-white flex flex-col hidden md:flex">
-        <div className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-sky-900 rounded-xl">
-              <School className="w-5 h-5 text-white" />
+      <aside className="w-80 border-r border-slate-200 bg-white flex flex-col hidden lg:flex sticky top-0 h-screen">
+        <div className="p-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/10 transition-transform hover:scale-110">
+              <School className="w-6 h-6 text-white" strokeWidth={1.5} />
             </div>
-            <span className="font-bold text-lg tracking-tight">Skyline</span>
+            <div>
+                <span className="font-display font-bold text-2xl tracking-tight text-slate-900 uppercase">Skyline</span>
+                <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] -mt-1">Public Hub</p>
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-2 space-y-1">
-          <NavButton 
-            active={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')} 
-            icon={<LayoutDashboard className="w-4 h-4" />} 
-            label="Overview" 
-          />
-          {profile?.role === 'admin' ? (
-            <>
-              <NavButton 
-                active={activeTab === 'admissions'} 
-                onClick={() => setActiveTab('admissions')} 
-                icon={<UserPlus className="w-4 h-4" />} 
-                label="Admissions" 
-              />
-              <NavButton 
-                active={activeTab === 'students'} 
-                onClick={() => setActiveTab('students')} 
-                icon={<Users className="w-4 h-4" />} 
-                label="Students" 
-              />
-              <NavButton 
-                active={activeTab === 'attendance'} 
-                onClick={() => setActiveTab('attendance')} 
-                icon={<Clock className="w-4 h-4" />} 
-                label="Attendance" 
-              />
-              <NavButton 
-                active={activeTab === 'fees'} 
-                onClick={() => setActiveTab('fees')} 
-                icon={<Receipt className="w-4 h-4" />} 
-                label="Finance" 
-              />
-            </>
-          ) : (
-            <>
-              <NavButton 
-                active={activeTab === 'apply'} 
-                onClick={() => setActiveTab('apply')} 
-                icon={<GraduationCap className="w-4 h-4" />} 
-                label="Admissions" 
-              />
-              <NavButton 
-                active={activeTab === 'portal'} 
-                onClick={() => setActiveTab('portal')} 
-                icon={<CreditCard className="w-4 h-4" />} 
-                label="My Portal" 
-              />
-            </>
-          )}
+        <nav className="flex-1 px-8 py-2 space-y-2">
+            <div className="mb-6">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mb-4 ml-2">Main Controls</p>
+                <div className="space-y-1">
+                    <NavButton 
+                        active={activeTab === 'admissions'} 
+                        onClick={() => setActiveTab('admissions')} 
+                        icon={<ClipboardCheck className="w-5 h-5" strokeWidth={2} />} 
+                        label="Records Index" 
+                    />
+                    <NavButton 
+                        active={activeTab === 'apply'} 
+                        onClick={() => setActiveTab('apply')} 
+                        icon={<UserPlus className="w-5 h-5" strokeWidth={2} />} 
+                        label="New Induction" 
+                    />
+                </div>
+            </div>
         </nav>
 
-        <div className="p-4 border-t border-neutral-100">
-          <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">
-              {user.displayName?.[0]}
+        <div className="p-8">
+            <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/20 blur-2xl rounded-full -mr-10 -mt-10" />
+                <div className="relative z-10 flex flex-col gap-5">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-sm font-bold text-slate-900 shadow-sm">
+                            {user.displayName?.[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-slate-900 truncate tracking-tight leading-none mb-1.5">{user.displayName}</p>
+                            <Badge variant="outline" className="border-slate-200 text-slate-400 rounded-full text-[9px] font-bold uppercase tracking-widest px-2 h-4">{profile?.role}</Badge>
+                        </div>
+                    </div>
+                    <Button variant="ghost" className="w-full justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-12 rounded-xl transition-all font-bold uppercase text-[10px] tracking-widest border border-slate-100 bg-white" onClick={handleSignOut}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Revoke Access
+                    </Button>
+                </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.displayName}</p>
-              <p className="text-xs text-neutral-500 uppercase tracking-tighter">{profile?.role}</p>
-            </div>
-          </div>
-          <Button variant="ghost" className="w-full justify-start text-neutral-500 hover:text-red-600 hover:bg-red-50 h-9 px-3" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b border-neutral-200 bg-white/50 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-10 md:hidden">
-            <div className="flex items-center gap-2">
-                <School className="w-6 h-6 text-sky-900" />
-                <span className="font-bold tracking-tight">Skyline</span>
+        <header className="h-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-10 lg:hidden">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                    <School className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-display font-bold text-xl tracking-tight uppercase text-slate-900">Skyline</span>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+            <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl h-12 w-12 text-slate-400">
                 <LogOut className="w-5 h-5" />
             </Button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-6xl mx-auto"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="min-h-full"
             >
               <ViewContent activeTab={activeTab} role={profile?.role} />
             </motion.div>
@@ -243,7 +239,7 @@ function MainLayout() {
         </div>
       </main>
       <AIAssistant />
-      <Toaster />
+      <Toaster position="top-center" richColors />
     </div>
   );
 }
@@ -252,15 +248,22 @@ function NavButton({ active, onClick, icon, label }: { active: boolean, onClick:
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-wider transition-all relative group ${
         active 
-          ? 'bg-neutral-100 text-neutral-900 shadow-sm shadow-neutral-200' 
-          : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
+          ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' 
+          : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
       }`}
     >
-      {icon}
+      <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:translate-x-1'}`}>
+        {icon}
+      </div>
       <span>{label}</span>
-      {active && <ChevronRight className="ml-auto w-3 h-3 text-neutral-400" />}
+      {active && (
+          <motion.div 
+            layoutId="nav-active"
+            className="absolute right-4 w-1.5 h-1.5 rounded-full bg-white/40"
+          />
+      )}
     </button>
   );
 }
